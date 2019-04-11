@@ -1,0 +1,8 @@
+PROGRAM 3PR;
+PROCEDURE PROC;
+	LABEL 1, 4
+	BEGIN
+	#@
+	$
+	(*comment*)
+	END;

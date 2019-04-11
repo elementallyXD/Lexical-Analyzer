@@ -1,0 +1,11 @@
+D:\NTUU\6\ОПТ\OPT\OPT\bin\Debug\netcoreapp2.1\OPT.deps.json
+D:\NTUU\6\ОПТ\OPT\OPT\bin\Debug\netcoreapp2.1\OPT.runtimeconfig.json
+D:\NTUU\6\ОПТ\OPT\OPT\bin\Debug\netcoreapp2.1\OPT.runtimeconfig.dev.json
+D:\NTUU\6\ОПТ\OPT\OPT\bin\Debug\netcoreapp2.1\OPT.dll
+D:\NTUU\6\ОПТ\OPT\OPT\bin\Debug\netcoreapp2.1\OPT.pdb
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.csprojAssemblyReference.cache
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.csproj.CoreCompileInputs.cache
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.AssemblyInfoInputs.cache
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.AssemblyInfo.cs
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.dll
+D:\NTUU\6\ОПТ\OPT\OPT\obj\Debug\netcoreapp2.1\OPT.pdb

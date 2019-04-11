@@ -1,0 +1,11 @@
+PROGRAM 3PR;
+PROCEDURE PROC();
+	LABEL 1, 4
+	BEGIN
+	%
+	(*SFS*)
+	(*****)
+	[+a99+]
+	123
+	END;
+	
