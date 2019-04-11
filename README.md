@@ -1,7 +1,12 @@
-"# Lexical-Analyzer" 
-<img src=http://prntscr.com/nak5s6 alt="analyzer">
-Завдання:
-<img src="http://prntscr.com/nak4n4" alt="task">
-<img src="http://prntscr.com/nak4n4"
-     alt="Markdown Monster icon"
-     style="float: left; margin-right: 10px;" />
+## Lexical Analyzer:
+![](/img/Screenshot_2.png)
+
+
+_Задание:
+
+![](/img/Screenshot_1.png)
+
+
+**Робота программи:**
+
+![](/img/Screenshot_3.png)
