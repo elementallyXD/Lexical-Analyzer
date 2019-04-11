@@ -190,124 +190,15 @@ namespace OPT
                                     break;
                             }
                             break;
+                        //need to fix
                         case 4:
-                            switch (symbol.value)
-                            {
-                                case '[':
-                                    column = iterator;
-                                    buffer += symbol.value;
-                                    iterator++;
-                                    if (GetSymbol(tables, line, iterator).value == '+')
-                                    {
-                                        buffer += GetSymbol(tables, line, iterator).value;
-                                        //if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                        //buffer = "";
-                                        int iterNum = iterator + 3;
-                                        while ((iterator < iterNum))
-                                        {
-                                            iterator++;
-                                            if (GetSymbol(tables, line, iterator).attr == 1)
-                                            //{
-                                                if (iterDig < 3)
-                                                {
-                                                    bufferDig += GetSymbol(tables, line, iterator).value;
-                                                    iterDig++;
-                                                }
-                                                else good = false;
-                                        }
-                                            else
-                                            {
-                                            notConst1 = false;
-                                            goodWord = false;
-                                            iterator--;
-                                            //if (tables.GetIdn(buffer, row, column) == -1)
-                                            //{
-                                            //    tables.IdnTabForm(buffer, row, column);
-                                            //   // buffer = "";
-                                        }
-                                            //buffer = "";
-                                            //tables.Trace.Add("Error. [+NUM+]");
-                                            break;
-                                        }
-                                    }
-                                        if (!goodWord && (iterDig != 3))
-                                        {
-                                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                            buffer = "";
-
-                                            if (tables.GetConst(bufferDig, row, column) == -1 && notConst1 == false)
-                                            {
-                                                tables.ConstTabForm(bufferDig, row, column);
-                                                buffer = "";
-                                            }
-                                            else if (notConst1)
-                                            {
-                                                if (tables.GetIdn(bufferDig, row, column) == -1)
-                                                {
-                                                    tables.IdnTabForm(bufferDig, row, column);
-                                                    buffer = "";
-                                                }
-                                            }
-                                        }
-                                        else buffer += bufferDig;
-
-                                        iterator++;
-                                        symbol = GetSymbol(tables, line, iterator);
-                                        if ((iterDig == 3) && symbol.value == '+' && good && iterator > line.Length - 3 && GetSymbol(tables, line, --iterator).attr == 1)
-                                        {
-                                            buffer += GetSymbol(tables, line, ++iterator).value;
-                                            iterator++;
-                                            if (GetSymbol(tables, line, iterator).value == ']')
-                                            {
-                                                buffer += GetSymbol(tables, line, iterator).value;
-                                                goodWord = true;
-                                            }
-                                            else
-                                            {
-                                                goodWord = false;
-                                                if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                                buffer = "";
-                                                tables.Trace.Add("Error. Must be ]");
-                                            }
-                                        }
-                                        else if (symbol.value != '+' && symbol.attr != 1)
-                                        {
-                                            goodWord = false;
-                                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                            buffer = "";
-                                            iterator = line.Length - 1;
-                                            tables.Trace.Add("Error. Must be +");
-                                        }
-                                        else
-                                        {
-                                            goodWord = false;
-                                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                            buffer = "";
-                                            iterator = line.Length - 1;
-                                            tables.Trace.Add("Error. [+NUM+]");
-                                        }
-                                    }
-                                    else {
-                                        if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                        tables.Trace.Add("Error. [. Need first '+'");
-                                        goodWord = false;
-                                        buffer = "";
-                                        iterator += line.Length - 2;
-                                    }
-                                    if (goodWord){ 
-                                        if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);    
-                                    }
-                                    buffer = "";
-                                    break;
-
-                                default:
-                                    column = iterator;
-                                    buffer += symbol.value;
-                                    if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                    buffer = "";
-                                    break;
-                            }
+                            column = iterator;
+                            buffer += symbol.value;
+                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
+                            buffer = "";
                             break;
+                    
+                        
                         case 5:
                             column = iterator;
                             tables.Trace.Add("Illegal symbol ---" + symbol.value + "\trow " + row + "\tcolumn " + column);
