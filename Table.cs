@@ -48,6 +48,13 @@ namespace OPT
             return -1;
         }
 
+        public int GetOldSep(string str){
+            for (int i = 0; i < 100; i++)
+                if (sepTab[i] == str)
+                    return i + STARTING_SEP_NUMBER;
+            return -1;
+        }
+
         //  table sep
         public int SeparatorsForm(string str, int row, int column)
         {
@@ -87,6 +94,15 @@ namespace OPT
             return -1;
         }
 
+        public int GetKeyPos(string str){
+            for (int i = 0; i < 100; i++)
+                if (keyTab[i] == str)
+                {
+                    return i + STARTING_KEY_NUMBER;
+                }
+            return -1;
+        }
+
         public int GetAttribut(int iterator){
              return attributes[iterator];
         }
@@ -117,6 +133,7 @@ namespace OPT
             attributes[42] = 3; // *
 
 
+            attributes[46] = 4; // .
             attributes[44] = 4; // ,
             attributes[59] = 4; // ;
             attributes[91] = 4; //[
@@ -185,6 +202,7 @@ namespace OPT
             }
             Console.WriteLine("___|____________________________________");
         }
+       
         public void PrintTable(string[] table, int number, string name)
         {
             Console.WriteLine("________________________________________");
@@ -196,5 +214,20 @@ namespace OPT
             }
             Console.WriteLine("____|___________________________________");
         }
+
+        //public void PrintTable(Parser text, Table tables)
+        //{
+        //    string[] programCode = text.GetLines();
+        //    for (int i = 0; i < programCode.Length; i++)
+        //    {
+        //        ushort j = 0;
+        //        while (j < programCode[i].Length)
+        //        {
+        //            Console.Write("\t{0}{1}", GetSymbol( tables, programCode[i], j).value, GetSymbol( tables, programCode[i], j).attr);
+        //            j++;
+        //        }
+        //        Console.WriteLine();
+        //    }
+        //}
     }
 }

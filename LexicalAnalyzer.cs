@@ -1,9 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace OPT
 {
     class LexicalAnalyzer
     {
+        enum TokenType
+        {
+            DIGIT,
+            LETTER,
+            WHITESPACE,
+            DELIMETER,
+            COM_PARENTH,
+            COM_ASTERISK,
+        }
+        private List<Token> tokens;
+
         private struct TSymbol
         {
             public char value;
@@ -14,53 +26,70 @@ namespace OPT
         {
             TSymbol result;
             
-           if (iterator < line.Length) {
-                result.value = line[iterator];
-           }
-           else{
-               result.value = ' ';
-           }
+           if (iterator < line.Length) result.value = line[iterator];
+           else result.value = ' ';
+           
             result.attr = tables.GetAttribut(result.value);
-        
-
             return result;
         }
 
-        public void PrintTable(Parser text, Table tables)
+        private void AddToken(int code, int row, int column, string line)
         {
-            string[] programCode = text.GetLines();
-            for (int i = 0; i < programCode.Length; i++)
-            {
-                ushort j = 0;
-                while (j < programCode[i].Length)
-                {
-                    Console.Write("\t{0}{1}", GetSymbol( tables, programCode[i], j).value, GetSymbol( tables, programCode[i], j).attr);
-                    j++;
-                }
-                Console.WriteLine();
-            }
+            tokens.Add(new Token(code, row, column, line));
         }
 
-        public LexicalAnalyzer(Parser text, Table tables){
+        private string TokenizeIdn(string word, ref int row, ref int column, Table tables){
+            AddToken(tables.IdnTabForm(word, row, column), row, column, word);
+            //tables.IdnTabForm(word, row, column);
+            return null;
+        }
+
+        private string TokenizeConst(string word, ref int row, ref int column, Table tables){
+            AddToken(tables.ConstTabForm(word, row, column), row, column, word);
+            return null;
+        }
+
+        private string TokenizeSep(string word, ref int row, ref int column, Table tables){
+            AddToken(tables.SeparatorsForm(word, row, column), row, column, word);
+            return null;
+        }
+
+        private string TokenizeOldSep(string word, ref int row, ref int column, Table tables)
+        {
+            //int pos = tables.GetOldSep(word);
+            AddToken(tables.GetOldSep(word), row, column, word);
+            return null;
+        }
+
+        private string TokenizeKeyWord(string word, ref int row, ref int column, Table tables)
+        {
+            int pos = tables.GetKeyPos(word);
+            if (pos != -1)
+                AddToken(pos, row, column, word);
+            return null;
+        }
+
+        public LexicalAnalyzer(CodeParser text, Table tables){
             string[] programCode = text.GetLines();
             TSymbol symbol;
+
+            tokens = new List<Token>();
+
             Console.WriteLine("\n\t\tLexical Analyzer:");
             int row = 1, column = 1;
-        
-            
     
             foreach (string line in programCode)
             {
                 string buffer = "";
-                int iterDig = 0;
+                //int iterDig = 0;
 
-                bool Suppres = true;
+                //bool Suppres = true;
 
-                bool good = true;
-                bool goodWord = true;
-                bool goodDig = true;
-                bool notConst1 = true;
-                string bufferDig = "";
+                //bool good = true;
+                //bool goodWord = true;
+                //bool goodDig = true;
+                //bool notConst1 = true;
+                //string bufferDig = "";
 
 
                 bool notConst = false;
@@ -68,12 +97,11 @@ namespace OPT
                 
                 for (int iterator = 0; iterator < line.Length; iterator++)
                 {
-                   
                     symbol = GetSymbol(tables, line, iterator);
                     switch (symbol.attr)
                     {
                         case 0:
-                            buffer = "";
+                            buffer = null;
                             break;
 
                         case 1:
@@ -82,7 +110,6 @@ namespace OPT
                                 symbol = GetSymbol(tables, line, iterator);
                                 if (symbol.attr == 1)
                                 {
-
                                     buffer += symbol.value;
                                     iterator++;
                                 }
@@ -98,21 +125,11 @@ namespace OPT
                                     break;
                                 }
                             }
-                            if (tables.GetConst(buffer, row, column) == -1 && notConst == false)
-                            {
-                                tables.ConstTabForm(buffer, row, column);
-                                buffer = "";
-                            }
-                            else if (notConst)
-                            {
-                                if (tables.GetIdn(buffer, row, column) == -1)
-                                {
-                                    tables.IdnTabForm(buffer, row, column);
-                                    buffer = "";
-                                }
-                            }
+                            if (tables.GetConst(buffer, row, column) == -1 && notConst == false) buffer = TokenizeConst(buffer, ref row, ref column, tables);
+                            else if (notConst) 
+                                if (tables.GetIdn(buffer, row, column) == -1) buffer = TokenizeIdn(buffer,ref row, ref column, tables);
+                            
                             break;
-
                         case 2:
                             column = iterator;
                             while (iterator < line.Length)
@@ -130,14 +147,16 @@ namespace OPT
                                 }
                             }
                             if (tables.KeyTabSearch(buffer, row, column) == -1){
-                                if (tables.GetIdn(buffer, row, column) == -1)
+                                if (tables.GetIdn(buffer, row, column) == -1) buffer = TokenizeIdn(buffer, ref row, ref column, tables);
+                                else
                                 {
-                                    tables.IdnTabForm(buffer, row, column);
-                                    buffer = "";
+                                    buffer = null;
                                 }
-                                buffer = "";
                             }
-                            buffer = "";
+                            else {
+                                buffer = TokenizeKeyWord(buffer, ref row, ref column, tables);
+                            }
+                            buffer = null;
                             break;
                         case 3:
                             switch (symbol.value)
@@ -175,11 +194,10 @@ namespace OPT
                                         else if (GetSymbol(tables, line, iterator).value == ')')
                                         {
                                             buffer += symbol.value;
-                                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                                            buffer = "";
+                                            if (tables.GetSeparators(buffer, row, column) == -1) buffer = TokenizeSep(buffer, ref row, ref column, tables);
+                                            buffer = null;
                                             buffer += GetSymbol(tables, line, iterator).value;
-                                            if (tables.GetSeparators(buffer, row, ++column) == -1) tables.SeparatorsForm(buffer, row, ++column);
-                                            buffer = "";
+                                            if (tables.GetSeparators(buffer, row, ++column) == -1) buffer = TokenizeSep(buffer, ref row, ref column, tables);
                                         }
                                         else tables.Trace.Add("Error. \"*\" can't open com");
                                     }
@@ -189,17 +207,17 @@ namespace OPT
                                     tables.Trace.Add("Error. \"*\"");
                                     break;
                             }
+                            buffer = null;
                             break;
-                        //need to fix
                         case 4:
                             column = iterator;
                             buffer += symbol.value;
-                            if (tables.GetSeparators(buffer, row, column) == -1) tables.SeparatorsForm(buffer, row, column);
-                            buffer = "";
-                            break;
-                    
-                        
-                        case 5:
+                            if (tables.GetSeparators(buffer, row, column) == -1) buffer = TokenizeSep(buffer, ref row, ref column, tables);
+                            else {
+                                buffer = TokenizeOldSep(buffer, ref row, ref column, tables);
+                            }
+                            break;                     
+                        default:
                             column = iterator;
                             tables.Trace.Add("Illegal symbol ---" + symbol.value + "\trow " + row + "\tcolumn " + column);
                             break;
@@ -208,6 +226,16 @@ namespace OPT
                 row++;
             }
             tables.Trace.ForEach(Console.WriteLine);
+            PrintTokens();
         }
+
+        private void PrintTokens(){
+            foreach (Token token in tokens)
+            {
+                token.GetInfo();
+            }
+        }
+
+        public List<Token> GetTokens() => tokens;
     }
 }

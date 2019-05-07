@@ -5,11 +5,11 @@ using System.IO;
 
 namespace OPT
 {
-    class Parser
+    class CodeParser
     {
         private static string[] lines;
 
-        public Parser(string filename){
+        public CodeParser(string filename){
             var textList = new List<string>();
             string text;
             try
@@ -40,6 +40,6 @@ namespace OPT
                 Console.WriteLine(line);
         }
 
-        ~Parser(){}
+        ~CodeParser(){}
     }
 }
