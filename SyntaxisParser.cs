@@ -44,16 +44,12 @@ namespace OPT
             public int GetColumn() { return column; }
         }
         
-        public void PrintParser() //1
+        public void PrintParser() 
         {
             if (syntaxTree != null) syntaxTree.PrintTree();
         }
-        //public void ExitProgram()
-        //{
-        //    Environment.Exit(0);
-        //}
         
-        public void PrintParserErrors() //1
+        public void PrintParserErrors()
         {
             foreach (var item in parserErrors)
             {
@@ -61,7 +57,7 @@ namespace OPT
             }
         }
         
-        public void Start() //1
+        public void Start()
         {
             try
             {
@@ -86,18 +82,29 @@ namespace OPT
         {
             TreeNode childNode = new TreeNode("<Program>");
             parent.AddChild(childNode);
+            bool program = false;
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "PROGRAM")
             {
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
+                ProcedureIdentifier(childNode);
+                program = true;
+            }
+            else if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "PROCEDURE")
+            {
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                tokens.RemoveAt(0);
+                ProcedureIdentifier(childNode);
+                ParametersList(childNode);
             }
             else
             {
-                parserErrors.Add($"Expected keyword PROGRAM ");
+                parserErrors.Add($"Expected keyword PROGRAM || PROCEDURE");
                 throw new ParserErrorException("Exception");
             }
-            ProcedureIdentifier(childNode);
+           
             if (tokens.Count != 0 && tokens[0].GetLine() == ";")
             {
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
@@ -106,25 +113,35 @@ namespace OPT
             }
             else
             {
-                parserErrors.Add($"Expected ; after Identifier at  Row: " + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                parserErrors.Add($"Expected ; at  Row: " + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
                 throw new ParserErrorException("Exception");
             }
 
             Block(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine() == ".")
+            
+            if (tokens.Count != 0 && tokens[0].GetLine() == "." && program)
             {
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
-            else
+            else if (tokens.Count != 0 && tokens[0].GetLine() == ";" && !program){
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                tokens.RemoveAt(0);
+            }
+            else if (program)
             {
                 parserErrors.Add($"Expected . after Block at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
                 throw new ParserErrorException("Exception");
             }
+            else{
+                parserErrors.Add($"Expected ; after Block at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                throw new ParserErrorException("Exception");
+            }
         }
 
-        private void Declarations(TreeNode parent){ //my
+        private void Declarations(TreeNode parent){
             TreeNode childNode = new TreeNode("<declarations>");
             parent.AddChild(childNode);
             LableDeclarations(childNode);
@@ -168,7 +185,6 @@ namespace OPT
             TreeNode childNode = new TreeNode("<Block>");
             parent.AddChild(childNode);
             Declarations(childNode);
-            //VariableDeclarations(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "BEGIN")
             {
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
@@ -180,7 +196,7 @@ namespace OPT
                 parserErrors.Add($"Expected BEGIN  at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
                 throw new ParserErrorException("Exception");
             }
-            //StatementsList(childNode);
+            StatementsList(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "END")
             {
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
@@ -189,225 +205,59 @@ namespace OPT
             }
             else
             {
-                parserErrors.Add($"Expected END after  Statement list at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
+                parserErrors.Add($"Expected END at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
                 throw new ParserErrorException("Exception");
             }
         }
-        private void VariableDeclarations(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Variable Declarations>");
-            parent.AddChild(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "VAR")
-            {
 
+        private void ParametersList(TreeNode parent)
+        {
+            TreeNode childNode = new TreeNode("<parameters-List>");
+            parent.AddChild(childNode);
+            if (tokens.Count != 0 && tokens[0].GetLine() == "("){
                 childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
-                DeclarationsList(childNode);
-            }
-            else
-            {
-                TreeNode empty = new TreeNode("<Empty>");
-                childNode.AddChild(empty);
 
+                DeclarationsList(childNode);
+                if (tokens.Count != 0 && tokens[0].GetLine() == ")")
+                {
+                    childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                    position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                    tokens.RemoveAt(0);
+                }
+                else
+                {
+                    parserErrors.Add($"Expected ) after declaration list at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
+                    throw new ParserErrorException("Exception");
+                }
             }
+            else{
+                Empty(childNode);
+            }
+           
         }
         
         private void DeclarationsList(TreeNode parent)
         {
-            bool flag = false;
-
-            while (tokens.Count != 0 && tokens[0].GetCode() > 500 && tokens[0].GetCode() < 600)
-            {
-                flag = true;
-                TreeNode childNode = new TreeNode("<Declaration List>");
-                parent.AddChild(childNode);
-                Declaration(childNode);
-            }
-            if (!flag)
-            {
-                TreeNode childNode = new TreeNode("<Declaration List>");
-                parent.AddChild(childNode);
-                TreeNode empty = new TreeNode("<Empty>");
-                childNode.AddChild(empty);
-            }
-        }
-        private void Declaration(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Declaration>");
+            TreeNode childNode = new TreeNode("<declarations-List>");
             parent.AddChild(childNode);
-            VariableIdentifier(childNode);
-            if (tokens.Count != 0 && tokens[0].GetCode() == ':')
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected : after Identifier at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-            Attribute(childNode);
-            if (tokens.Count != 0 && tokens[0].GetCode() == ';')
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected ; after Attribute at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-
-            DeclarationsList(parent);
-
+            Empty(childNode);
         }
 
-        private void Attribute(TreeNode parent)
-        {
-            //bool flag = false;
-            TreeNode childNode = new TreeNode("<Attribute>");
-            parent.AddChild(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "INTEGER" || tokens[0].GetLine().ToUpper() == "FLOAT")
-            {
-               //flag = true;
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-
-            else
-            {
-                parserErrors.Add($"Expected Attribute at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-        }
         private void StatementsList(TreeNode parent)
         {
-            bool flag = false;
-
-            while (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "WHILE")
-            {
-                flag = true;
-                TreeNode childNode = new TreeNode("<Statements List>");
-                parent.AddChild(childNode);
-                Statement(childNode);
-            }
-
-            if (!flag)
-            {
-                TreeNode childNode = new TreeNode("<Statements List>");
-                parent.AddChild(childNode);
-                TreeNode empty = new TreeNode("<Empty>");
-                childNode.AddChild(empty);
-            }
-        }
-        private void Statement(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Statement>");
+            TreeNode childNode = new TreeNode("<Statements List>");
             parent.AddChild(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "WHILE")
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
+            Empty(childNode);
+        }
 
-            }
-            ConditionalExpression(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "DO")
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected DO after Conditional expression at Row:" + position.Peek().GetRow().ToString() + " Column" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-            StatementsList(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "ENDWHILE")
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected ENDWHILE after Statements list at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-            if (tokens.Count != 0 && tokens[0].GetCode() == ';')
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected ; after keyword Endwhile at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-            StatementsList(parent);
+        private void Empty(TreeNode parent)
+        {
+            TreeNode empty = new TreeNode("<Empty>");
+            parent.AddChild(empty);
+        }
 
-        }
-        private void ConditionalExpression(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Conditional Expression>");
-            parent.AddChild(childNode);
-            Expression(childNode);
-            ComparisonOperator(childNode);
-            Expression(childNode);
-        }
-        private void ComparisonOperator(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Comparison Operator>");
-            parent.AddChild(childNode);
-            if (tokens.Count != 0 && tokens[0].GetLine() == "<" ||
-                tokens[0].GetLine() == ">" ||
-                tokens[0].GetLine() == "<>" ||
-                tokens[0].GetLine() == "<=" ||
-                tokens[0].GetLine() == ">=" ||
-                tokens[0].GetLine() == "=")
-            {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
-                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
-                tokens.RemoveAt(0);
-            }
-            else
-            {
-                parserErrors.Add($"Expected Comparison Operator at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-        }
-        private void Expression(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Expression>");
-            parent.AddChild(childNode);
-            if (tokens.Count != 0 && tokens[0].GetCode() > 500 && tokens[0].GetCode() < 600)
-            {
-                VariableIdentifier(childNode);
-            }
-            else if (tokens.Count != 0 && tokens[0].GetCode() > 600 && tokens[0].GetCode() < 700)
-            {
-                UnsignedInteger(childNode);
-            }
-            else
-            {
-                parserErrors.Add($"Expected Expression  at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
-            }
-        }
-        private void VariableIdentifier(TreeNode parent)
-        {
-            TreeNode childNode = new TreeNode("<Variable Identifier>");
-            parent.AddChild(childNode);
-            Identifier(childNode);
-
-        }
-        
         private void UnsignedInteger(TreeNode parent)
         {
             TreeNode childNode = new TreeNode("<Unsigned Integer>");
@@ -420,8 +270,7 @@ namespace OPT
             }
             else
             {
-                parserErrors.Add($"Expected Unsigned Integer at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
-                throw new ParserErrorException("Exception");
+                Empty(childNode);
             }
         }
 

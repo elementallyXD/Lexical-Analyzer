@@ -1,9 +1,8 @@
-PROGRAM 3PR;
+PROCEDURE GET();
 	LABEL 1, 4
 	BEGIN
-	(*%*)
+	%
 	(*SFS*)
 	(*****)
-	(*123*)
-	END.
+	END;
 	

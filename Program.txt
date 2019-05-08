@@ -1,8 +1,7 @@
-PROGRAM 3PR;
-PROCEDURE PROC;
+PROCEDURE GET();
 	LABEL 1, 4
 	BEGIN
-	#@
-	$
-	(*comment*)
+	%
+	(*SFS*)
+	(*****)
 	END;
