@@ -10,9 +10,16 @@ namespace OPT
         const int STARTING_IDN_NUMBER = 500;    // idn 
         const int STARTING_KEY_NUMBER = 700;    // key word
 
+        public Table () {
+            InitTables();
+            constants = new Dictionary<string, int>();
+        }
+
         private int[] attributes = new int[256];
         private string[] keyTab = new string[100];
         private string[] constTab = new string[100];
+        private Dictionary<string, int> constants;
+        public Dictionary<string, int> getConstants() => constants;
         private string[] idnTab = new string[100];
         private string[] sepTab = new string[100];
 
@@ -76,10 +83,25 @@ namespace OPT
         public int ConstTabForm(string str, int row, int column)
         {
             int i = 0;
-            while (constTab[i] != null) i++;
-            Trace.Add("CNST#" + (i + STARTING_CONST_NUMBER) + " Str= " + str + "  \trow " + row + "\tcolumn " + column);
-            constTab[i] = str;
-            return i + STARTING_CONST_NUMBER;
+            bool flag = false;
+            while (constTab[i] != null)
+            {
+                if (constTab[i] == str) { 
+                    flag = true;
+                    break;
+                }
+                i++;
+            }
+            if (!flag){ 
+                Trace.Add("CNST#" + (i + STARTING_CONST_NUMBER) + " Str= " + str + "  \trow " + row + "\tcolumn " + column);
+                constTab[i] = str;
+                constants.Add(str, STARTING_CONST_NUMBER + i);
+                return i + STARTING_CONST_NUMBER;
+            }
+            else {
+                Trace.Add("CNST#" + (i + STARTING_CONST_NUMBER) + " Str= " + str + "  \trow " + row + "\tcolumn " + column);
+                return i + STARTING_CONST_NUMBER;
+            }
         }
 
         //  search in table key words
@@ -184,11 +206,6 @@ namespace OPT
             InitIdnTab();
             InitSepTab();
             InitConstTab();
-        }
-
-        public Table()
-        {
-            InitTables();
         }
 
         public void PrintAtributes()

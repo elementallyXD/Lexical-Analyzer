@@ -15,7 +15,6 @@ namespace OPT
             COM_ASTERISK,
         }
         private List<Token> tokens;
-
         private struct TSymbol
         {
             public char value;
@@ -126,6 +125,7 @@ namespace OPT
                                 }
                             }
                             if (tables.GetConst(buffer, row, column) == -1 && notConst == false) buffer = TokenizeConst(buffer, ref row, ref column, tables);
+                            else if (!notConst) { buffer = TokenizeConst(buffer, ref row, ref column, tables); }
                             else if (notConst) 
                                 if (tables.GetIdn(buffer, row, column) == -1) buffer = TokenizeIdn(buffer,ref row, ref column, tables);
                             
@@ -211,6 +211,7 @@ namespace OPT
                             break;
                         case 4:
                             column = iterator;
+                            buffer = null;
                             buffer += symbol.value;
                             if (tables.GetSeparators(buffer, row, column) == -1) buffer = TokenizeSep(buffer, ref row, ref column, tables);
                             else {

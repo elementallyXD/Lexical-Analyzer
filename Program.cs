@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace OPT
 {
@@ -18,8 +19,18 @@ namespace OPT
             synt.PrintParser();
             synt.PrintParserErrors();
 
+            Console.WriteLine("\n----------Code generator----------\n");
+            CodeGenerator CG = new CodeGenerator(synt.getTree().root, tb.getConstants(), synt.GetProgram);
+            Console.WriteLine(CG.getStr());
+            if (CG.getErrorsList().Count != 0)
+            {
+                Console.WriteLine("\n----------Error tables----------\n");
+                CG.printErrors();
 
-            Console.WriteLine("End. Press any key to close...");
+            }
+            //else CG.PrintLastStep();
+
+            Console.WriteLine("\nEnd. Press any key to close...");
             Console.ReadLine();
         }
     }

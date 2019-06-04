@@ -1,8 +1,6 @@
-PROCEDURE GET();
-	LABEL 1, 4
+PROCEDURE SET();
+	LABEL 2, 3;
 	BEGIN
-	%
-	(*SFS*)
-	(*****)
+
 	END;
 	

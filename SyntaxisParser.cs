@@ -25,6 +25,11 @@ namespace OPT
         private Tree syntaxTree;
         private List<string> parserErrors;
         private Stack<Position> position;
+        public bool program = false;
+        public bool GetProgram { set { program = value; } get => program; }
+
+        public Tree getTree() => syntaxTree;
+
         public Parser(List<Token> tokens)
         {
             this.tokens = tokens;
@@ -82,10 +87,10 @@ namespace OPT
         {
             TreeNode childNode = new TreeNode("<Program>");
             parent.AddChild(childNode);
-            bool program = false;
+            
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "PROGRAM")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
                 ProcedureIdentifier(childNode);
@@ -93,7 +98,7 @@ namespace OPT
             }
             else if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "PROCEDURE")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
                 ProcedureIdentifier(childNode);
@@ -107,7 +112,7 @@ namespace OPT
            
             if (tokens.Count != 0 && tokens[0].GetLine() == ";")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
@@ -121,12 +126,12 @@ namespace OPT
             
             if (tokens.Count != 0 && tokens[0].GetLine() == "." && program)
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
             else if (tokens.Count != 0 && tokens[0].GetLine() == ";" && !program){
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
@@ -152,11 +157,76 @@ namespace OPT
             parent.AddChild(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "LABEL")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
                 UnsignedInteger(childNode);
+                //Label(childNode);
                 LablesList(childNode);
+            }
+
+            if (tokens.Count != 0 && tokens[0].GetLine() == ";"){
+                parent.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
+                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                tokens.RemoveAt(0);
+            }
+            else {
+                parserErrors.Add($"Expected ; at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                throw new ParserErrorException("Exception");
+            }
+        }
+
+        private void Label(TreeNode parent)
+        {
+            TreeNode childNode = new TreeNode("<label>");
+            parent.AddChild(childNode);
+            if(tokens.Count != 0 && tokens[0].GetCode() >= 400 && tokens[0].GetCode() < 500)
+            {
+                UnsignedInteger(childNode);
+            }
+            else if (tokens.Count != 0 && tokens[0].GetCode() >= 500 && tokens[0].GetCode() < 600)
+            {
+                Identifier(childNode);
+            }
+            else {
+                parserErrors.Add($"Expected Ui or indef at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                throw new ParserErrorException("Exception");
+            }
+        }
+
+        private void unsdd(TreeNode parent)
+        {
+            if (tokens.Count != 0 && tokens[0].GetLine() == ".")
+            {
+                parent.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
+                position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                tokens.RemoveAt(0);
+                if (tokens.Count != 0 && tokens[0].GetLine() == ".")
+                {
+                    parent.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
+                    position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                    tokens.RemoveAt(0);
+                    if (tokens.Count != 0 && tokens[0].GetCode() >= 400 && tokens[0].GetCode() < 500)
+                    {
+                        UnsignedInteger(parent);
+                    }
+                    if (tokens.Count != 0 && tokens[0].GetLine() == ";")
+                    {
+                        parent.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
+                        position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
+                        tokens.RemoveAt(0);
+                    }
+                    else
+                    {
+                        parserErrors.Add($"Expected ; after ..<ui> at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                        throw new ParserErrorException("Exception");
+                    }
+                }
+                else
+                {
+                    parserErrors.Add($"Expected . at Row:" + position.Peek().GetRow().ToString() + " Column:" + position.Peek().GetColumn().ToString());
+                    throw new ParserErrorException("Exception");
+                }
             }
         }
 
@@ -166,9 +236,10 @@ namespace OPT
             parent.AddChild(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine() == ",")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
+                //Label(childNode);
                 UnsignedInteger(childNode);
                 LablesList(childNode);
             }
@@ -187,7 +258,7 @@ namespace OPT
             Declarations(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "BEGIN")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
@@ -199,7 +270,7 @@ namespace OPT
             StatementsList(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine().ToUpper() == "END")
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
@@ -215,14 +286,14 @@ namespace OPT
             TreeNode childNode = new TreeNode("<parameters-List>");
             parent.AddChild(childNode);
             if (tokens.Count != 0 && tokens[0].GetLine() == "("){
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
 
                 DeclarationsList(childNode);
                 if (tokens.Count != 0 && tokens[0].GetLine() == ")")
                 {
-                    childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                    childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                     position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                     tokens.RemoveAt(0);
                 }
@@ -264,12 +335,12 @@ namespace OPT
             parent.AddChild(childNode);
             if (tokens.Count != 0 && tokens[0].GetCode() >= 400 && tokens[0].GetCode() < 500)
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")", tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
+                //unsdd(parent);
             }
-            else
-            {
+            else {
                 Empty(childNode);
             }
         }
@@ -286,7 +357,7 @@ namespace OPT
             parent.AddChild(childNode);
             if (tokens.Count != 0 && tokens[0].GetCode() >= 500 && tokens[0].GetCode() < 600)
             {
-                childNode.AddChild(new TreeNode(tokens[0].GetLine() + " ( Code: " + tokens[0].GetCode() + ")"));
+                childNode.AddChild(new TreeNode(tokens[0].GetLine(), tokens[0].GetCode()));
                 position.Push(new Position(tokens[0].GetRow(), tokens[0].GetColumn()));
                 tokens.RemoveAt(0);
             }
